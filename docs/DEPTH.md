@@ -14,6 +14,7 @@
 | M4 重扫判定 | 比较扫描候选并保留清晰版本 | POST /api/rescans/evaluate | `app/modules/m4_rescans/similarity.py` `app/modules/m4_rescans/decision.py` | `tests/test_m4_rescans.py` |
 | M5 混期归因 | 用页眉和页码证据裁决混期 | POST /api/mixed/evaluate | `app/modules/m5_mixed/evidence.py` `app/modules/m5_mixed/conflicts.py` | `tests/test_m5_mixed.py` |
 | M6 批次对账 | 检查四账并导出证据 | POST /api/reconcile | `app/modules/m6_batches/compare.py` `app/modules/m6_batches/exporter.py` | `tests/test_m6_batches.py` |
+| M7 离线同步 | 接收站点真实清单与离线修订，合并、挂起裁定并回读 | POST /api/sync/batches | `app/modules/m7_sync/intake.py` `app/modules/m7_sync/model.py` `app/modules/m7_sync/service.py` | `tests/test_m7_sync.py` `tests/test_m7_sync_rules.py` `tests/test_m7_sync_http.py` |
 
 ## 陷阱登记
 
@@ -29,6 +30,10 @@
 | TRAP-19 | 候选顺序改变 | 先到者决定保留项 | 显式排序键保持顺序无关 | `app/modules/m3_pages/sequence.py` | `tests/test_m3_pages.py::test_selection_order_independent` |
 | TRAP-22 | 同内容多别名 | 合并顺序改变代表扫描 | 清晰度后以时间和文件名择一 | `app/modules/m4_rescans/decision.py` | `tests/test_m4_rescans.py::test_selection_is_deterministic_on_tie` |
 | TRAP-26 | 陈旧重扫晚提交 | 旧版本覆盖新版 | 版本优先于输入顺序 | `app/modules/m3_pages/sequence.py` | `tests/test_m3_pages.py::test_higher_version_wins_not_later_input` |
+| TRAP-31 | 旧底稿把中心已核准的期版页归属盖回去 | 整单覆盖丢复核，整单拒收丢新扫描 | 已核准字段独立保护，冲突字段挂起，其余字段和扫描照常入账 | `app/modules/m7_sync/model.py` `app/modules/m7_sync/service.py` | `tests/test_m7_sync.py::test_old_base_cannot_regress_approved_page` |
+| TRAP-32 | 站点缺前序修订或前序分叉 | 直接合并产生幽灵版本 | 缺前序暂存 STAGED，分叉拒绝 PARENT_DIVERGED | `app/modules/m7_sync/service.py` | `tests/test_m7_sync.py::test_missing_parent_is_staged_not_merged` `tests/test_m7_sync.py::test_forked_parent_refuses_automatic_merge` |
+| TRAP-33 | 同步中断后整批重传 | 扫描件重复接收 | 批次与修订双重幂等，恢复只重放未入账修订 | `app/modules/m7_sync/service.py` | `tests/test_m7_sync.py::test_interrupted_batch_can_resume_from_unbooked_point` |
+| TRAP-34 | 中心复核与站点同步并发 | 过期版本覆盖新复核 | 版本前提不符直接拒绝 STALE_VERSION | `app/modules/m7_sync/service.py` | `tests/test_m7_sync_http.py::test_concurrent_review_and_sync_do_not_double_book` |
 
 ## 对账规则
 
@@ -39,4 +44,6 @@
 ## 已知不覆盖
 
 - 不读取图像二进制，感知哈希与 OCR 页眉由上游扫描软件提供。
+- M7 只负责接收与合并站点修订，沿用 M4 的重扫优选结论，不在同步时重选扫描版本。
+- M7 不做站点派工与任务分派，批次只由站点主动提交。
 

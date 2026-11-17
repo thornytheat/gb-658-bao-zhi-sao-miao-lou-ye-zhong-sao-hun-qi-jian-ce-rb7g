@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="kpis">
+  <div class="kpi"><b>已入账</b><strong>12</strong><small>修订</small></div>
+  <div class="kpi"><b>待前序</b><strong>1</strong><small>修订</small></div>
+  <div class="kpi"><b>冲突挂起</b><strong>1</strong><small>字段</small></div>
+  <div class="kpi"><b>规则版</b><strong>1.7</strong><small>v</small></div>
+</section>
+<div class="grid grid--receipt">
+  <section class="panel">
+    <div class="panel__head"><h2>离线同步</h2><span class="state state--ok">已接收</span></div>
+    <div class="panel__body panel__body--scroll">
+      <table class="ledger"><thead><tr><th>序号</th><th>站点 · 批次</th><th>状态</th><th class="num">修订</th></tr></thead>
+      <tbody>{% for row in rows %}<tr><td class="num">{{ loop.index }}</td><td>{{ row.key }}</td><td>{{ row.status }}</td><td class="num">{{ row.value }}</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </section>
+  <section class="panel panel--evidence">
+    <div class="panel__head"><h2>证据</h2><span class="panel__meta">回读</span></div>
+    <div class="panel__body">
+      <div class="evidence"><b>POST /api/sync/batches</b><span>接收真实清单与离线修订</span><code>GET /api/sync/progress</code></div>
+      <pre id="result">等待运行</pre>
+    </div>
+  </section>
+  <section class="panel panel--status">
+    <div class="panel__head"><h2>处理分布</h2><span class="panel__meta">5 类</span></div>
+    <div class="panel__body">
+      <div class="bar"><i style="width:72%"></i></div>
+      <div class="legend"><span>合并入账</span><span>挂起裁定</span></div>
+      <div class="evidence">
+        <span>GET /api/sync/conflicts</span>
+        <span>POST /api/sync/conflicts/{id}/resolve</span>
+        <span>POST /api/sync/recover</span>
+        <span>GET /api/sync/records/{business_key}</span>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

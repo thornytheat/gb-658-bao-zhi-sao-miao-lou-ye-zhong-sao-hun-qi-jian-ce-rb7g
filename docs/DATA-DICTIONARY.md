@@ -10,4 +10,10 @@
 - 时间：存储为带偏移的 ISO 8601，分桶使用半开区间。
 - 空值：缺失键、空串和业务哨兵分别记录。
 - 幂等：完整输入字节与规则版本相同则复用 run_id，不新增结果。
+- revision_id：站点本地修订号，入库时前缀站点标识（`station_id|revision_id`）保证全局唯一。
+- base_version：修订所依据的共同底稿版本；缺失时以当前入账版本为底稿。
+- expected_version：提报方声明的当前版本；与入账版本不符即判过期，不合并。
+- record version：中心记录入账版本号，每次入账 +1；同一版本快照不可变。
+- approved_fields / approved_values：中心复核已核准的字段及当时取值，未裁定前不接受改动。
+- conflict：挂起字段的三方证据 base / ours / theirs，裁定后记录 resolution_source 与裁定人。
 
